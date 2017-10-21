@@ -1,5 +1,6 @@
 from math import pow, sqrt
 
+
 # słownik krytyków filmowych i ich ocen niewielkiego zestawu filmów
 critics = {'Lisa Rose': {'Kobieta w błękitnej wodzie': 2.5, 'Węże w samolocie': 3.5, 'Całe szczęście': 3.0,
                          'Superman: Powrót': 3.5, 'Ja, ty i on': 2.5, 'Nocny słuchacz': 3.0},
@@ -15,14 +16,26 @@ critics = {'Lisa Rose': {'Kobieta w błękitnej wodzie': 2.5, 'Węże w samoloci
                          'Superman: Powrót': 5.0, 'Ja, ty i on': 3.5, 'Nocny słuchacz': 3.0},
            'Toby': {'Węże w samolocie': 4.5, 'Superman: Powrót': 4.0, 'Ja, ty i on': 1.0}
             }
-
+# @profile
 def pearson(prefs, pos1, pos2):
     # We can compare only same positions in both objects, so lets gather intersection info
-    inter = []
+    # c1 = [x for x in prefs[pos1].keys()]
+    # c2 = [x for x in prefs[pos2].keys()]
+    # inter = set(c1).intersection(c2)
+    # inter = [item for item in c1 if item in c2]
+    # inter = list(set(c1) & set(c2))
+    # inter = list(filter(lambda x: x in c1, c2))
+    # inter = list(filter(set(c1).__contains__, sublist))
+    inter = {}
 
+    # for item in c1:
+    #     if item in c2:
+    #         inter.append(item)
+    # print(type(pos1), pos1, type(pos2), pos2)
     for item in prefs[pos1]:
         if item in prefs[pos2]:
-            inter.append(item)
+            inter.setdefault(item)
+
     n = len(inter)
 
     # subcalculations for Pearson correlation coefficient
@@ -39,3 +52,6 @@ def pearson(prefs, pos1, pos2):
     if den == 0: return 0
     r = num / den
     return r
+
+def pearson_numpy(prefs, pos1, pos2):
+    pass
