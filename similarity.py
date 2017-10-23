@@ -16,6 +16,7 @@ critics = {'Lisa Rose': {'Kobieta w błękitnej wodzie': 2.5, 'Węże w samoloci
                          'Superman: Powrót': 5.0, 'Ja, ty i on': 3.5, 'Nocny słuchacz': 3.0},
            'Toby': {'Węże w samolocie': 4.5, 'Superman: Powrót': 4.0, 'Ja, ty i on': 1.0}
             }
+
 # @profile
 def pearson(prefs, pos1, pos2):
     # We can compare only same positions in both objects, so lets gather intersection info
@@ -36,7 +37,7 @@ def pearson(prefs, pos1, pos2):
         if item in prefs[pos2]:
             inter.setdefault(item)
 
-    n = len(inter)
+    n = float(len(inter))
 
     # subcalculations for Pearson correlation coefficient
     sum12 = sum(prefs[pos1][item] * prefs[pos2][item] for item in inter)
@@ -48,9 +49,9 @@ def pearson(prefs, pos1, pos2):
 
     num = n*sum12 - sum1*sum2
     den = sqrt((n*pow1 - pow(sum1, 2)) * (n*pow2 - pow(sum2, 2)))
-
-    if den == 0: return 0
-    r = num / den
+    # print('sum12:{0} sum1:{1} sum2:{2} pow1:{3} pow2:{4} num:{5} den:{6}'.format(sum12, sum1, sum2, pow1, pow2, num, den))
+    if den == 0: return 0.0
+    r = round(num / den, 6)
     return r
 
 def pearson_numpy(prefs, pos1, pos2):
