@@ -6,9 +6,13 @@ import recommendations as rec
 import dataset
 # import cProfile
 
-data = dataset.openJson(file='C:/Users/artur/PycharmProjects/Recommendations_art/datasets/prefs.json')
-# pearson_pairs = rec.buildPearsonDict(data)
-# dataset.savePrefsToJson(target_file='datasets/movies_pearson_pairs.json', prefs=pearson_pairs)
-prefs = rec.buildRecomSet(prefs=data, n=100)
+# data = dataset.openJson(file='datasets/prefs.json')
 #
-dataset.savePrefsToJson(target_file='datasets/movies_recommendations_total.json', prefs=prefs)
+# prefs = rec.buildRecomSet(prefs=data, n=1000000)
+#
+# dataset.savePrefsToJson(target_file='datasets/movies_recommendations_lotr.json', prefs=prefs)
+
+
+my_ratings = dataset.loadImdbData(csv_ratings='datasets/imdb-ratings.csv', csv_links='datasets/ml-latest/links.csv', csv_movies='datasets/ml-latest/movies.csv')
+
+print(my_ratings)

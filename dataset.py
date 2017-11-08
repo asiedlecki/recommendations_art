@@ -6,17 +6,18 @@ import logging
 
 # loading data from IMDB export file
 def loadImdbData(csv_ratings, csv_links='datasets/ml-latest/links.csv', csv_movies='datasets/ml-latest/movies.csv'):
-    ratings = pd.read_csv(filepath_or_buffer=csv_ratings, sep=',')
+    ratings = pd.read_csv(filepath_or_buffer=csv_ratings, sep=',', encoding='latin1')
     links = pd.read_csv(filepath_or_buffer=csv_links, sep=',')
     links = links.set_index('imdbId')
 
     currentUser = {}
-    for x in ratings[['const', 'You rated', 'Title']].values:
+    for x in ratings[['Const', 'Your Rating', 'Title']].values:
         index = int(x[0].lstrip('tt'))
         try:
             currentUser[int(links.loc[index]['movieId'])] = x[1]/2
         except: pass
     return currentUser
+
 
 # loading whole MovieLensData into dict of preferences
 def loadMovieLensData(file):
