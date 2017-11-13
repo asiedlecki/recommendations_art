@@ -3,6 +3,7 @@ import pandas as pd
 import datetime
 from timeit import default_timer
 import copy
+import dataset
 
 
 # returns topMatches for pos1 object on a basis of used distance function, work for critics and movies
@@ -121,3 +122,62 @@ def buildRecomSet(prefs, n=100):
     now = datetime.datetime.now()
     print(now)
     return recom_set
+
+
+def getRecommendedItems(user_prefs, movies_sim):
+
+    weighted_rating = {}
+    similarity_sum = {}
+
+    for (user_movie, user_rating) in user_prefs.items():
+        if str(user_movie) in movies_sim:
+            for (similarity, movie) in movies_sim[str(user_movie)]:
+
+                # lets ignore movies that have been already rated by user
+                if movie in user_prefs: continue
+
+                # calculating sum of weighted rating of every non-watched movie
+                weighted_rating.setdefault(movie, 0)
+                weighted_rating[movie] += user_rating*similarity
+
+                # summarizing all similarity measures
+                similarity_sum.setdefault(movie, 0)
+                similarity_sum[movie] += similarity
+        else: continue
+
+    # dividing sum of ratings by sum of similarities to get a mean of rating
+    recs = [(rating/similarity_sum[movie], movie) for movie, rating in weighted_rating.items()]
+
+    # sorting recommendations
+    recs.sort(reverse=True)
+    return recs
+
+def getPopularMovies(prefs):
+
+    # counting number of ratings per movie
+    movies_popularity = {}
+    for movie in prefs:
+        ratings = len(prefs[movie])
+        movies_popularity[movie] = ratings
+
+    dataset.savePrefsToJson(target_file='datasets/movies_popularity.json', prefs=movies_popularity)
+
+    # creating data frame so as to check the 75th-percentile
+    df = pd.DataFrame.from_dict(data=movies_popularity, orient='index')
+    min_popular = int(df.quantile(q=0.75)[0])
+    print('Minimum number of ratings per movie: {0}'.format(min_popular))
+
+    # creating set of movies for filtering
+    popular_movies = set(key for key, value in movies_popularity.items() if value >= min_popular)
+    print('Number of movies to analyze: {0}'.format(len(popular_movies)))
+
+    return popular_movies
+
+# this function prepares dict of similar movies on the basis of only the most popular movies
+def executeDictSimMovies(prefs_file, target_file):
+    data = dataset.openJson(file=prefs_file)
+    popular_items = getPopularMovies(data)
+    data = {movie: data[movie] for movie in popular_items}
+    popular_items = None
+    prefs = buildRecomSet(prefs=data, n=1000)
+    dataset.savePrefsToJson(target_file=target_file, prefs=prefs)
