@@ -146,7 +146,7 @@ def getRecommendedItems(user_prefs, movies_sim):
         else: continue
 
     # dividing sum of ratings by sum of similarities to get a mean of rating
-    recs = [(rating/similarity_sum[movie], movie) for movie, rating in weighted_rating.items()]
+    recs = [(round(rating/similarity_sum[movie], 6), movie) for movie, rating in weighted_rating.items()]
 
     # sorting recommendations
     recs.sort(reverse=True)
