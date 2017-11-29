@@ -93,7 +93,7 @@ def buildRecomSetBuffered(prefs, distance=similarity.pearson, n=100):
 
 # building dict - position: [recommended positions]
 # not using buffer - a bit slower, but much less RAM is required
-def buildRecomSet(prefs, n=100):
+def buildRecomSet(prefs, distance=similarity.pearson, n=100):
     # n is number recommended movies per movie
     now = datetime.datetime.now()
     print(now)
@@ -104,7 +104,7 @@ def buildRecomSet(prefs, n=100):
     start = default_timer()
 
     for pos in prefs:
-        recom_set[pos] = topMatches(prefs=prefs, pos1=pos, n=n)
+        recom_set[pos] = topMatches(prefs=prefs, distance=distance, pos1=pos, n=n)
 
         print(str(i)+':', pos, 'of movieId')
         # print(type(pos), pos, recom_set[pos])
@@ -174,10 +174,10 @@ def getPopularMovies(prefs):
     return popular_movies
 
 # this function prepares dict of similar movies on the basis of only the most popular movies
-def executeDictSimMovies(prefs_file, target_file):
+def executeDictSimMovies(prefs_file, target_file, distance=similarity.pearson, ):
     data = dataset.openJson(file=prefs_file)
     popular_items = getPopularMovies(data)
     data = {movie: data[movie] for movie in popular_items}
     popular_items = None
-    prefs = buildRecomSet(prefs=data, n=1000)
+    prefs = buildRecomSet(prefs=data, distance=distance, n=1000)
     dataset.savePrefsToJson(target_file=target_file, prefs=prefs)

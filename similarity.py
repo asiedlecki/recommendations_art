@@ -1,5 +1,5 @@
 from math import pow, sqrt
-
+from numpy import corrcoef
 
 # słownik krytyków filmowych i ich ocen niewielkiego zestawu filmów
 critics = {'Lisa Rose': {'Kobieta w błękitnej wodzie': 2.5, 'Węże w samolocie': 3.5, 'Całe szczęście': 3.0,
@@ -55,4 +55,14 @@ def pearson(prefs, pos1, pos2):
     return r
 
 def pearson_numpy(prefs, pos1, pos2):
-    pass
+    inter = {}
+    for item in prefs[pos1]:
+        if item in prefs[pos2]:
+            inter.setdefault(item)
+
+    x = [prefs[pos1][item] for item in inter]
+    y = [prefs[pos2][item] for item in inter]
+
+    r = corrcoef(x=x, y=y)
+
+    return round(r[0][1], 6)

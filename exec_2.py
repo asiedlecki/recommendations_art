@@ -2,17 +2,11 @@
 # to run line_profiler: C:\ProgramData\Anaconda3\Scripts>kernprof -l -v C:\Users\artur\PycharmProjects\Recommendations_art\exec_2.py
 
 import recommendations as rec
-# import similarity as sim
+import similarity as sim
 import dataset
 # import cProfile
 import json
 
-# data = dataset.openJson(file='datasets/prefs.json')
-# popular_items = rec.getPopularMovies(data)
-#
-# prefs = rec.buildRecomSet(prefs=data, n=1000)
-#
-# dataset.savePrefsToJson(target_file='datasets/movies_recommendations_lotr.json', prefs=prefs)
 
 # movies = dataset.openJson('datasets/movies_recommendations_total.json')
 # print(type(movies))
@@ -21,4 +15,9 @@ import json
 # result = rec.getRecommendedItems(user_prefs=my_ratings, movies_sim=movies)
 # print(result)
 
-rec.executeDictSimMovies(prefs_file='datasets/prefs.json', target_file='datasets/similar_movies.json')
+rec.executeDictSimMovies(prefs_file='datasets/prefs.json', target_file='datasets/similar_movies_numpy.json', distance=sim.pearson)
+
+# test_prefs = {'a': {'aa': 1, 'bb': 2, 'cc': 3}, 'b':{'aa': 1, 'bb': 5, 'cc': 7}}
+# print(sim.pearson(sim.critics, 'Lisa Rose', 'Claudia Puig'))
+# print(sim.pearson(test_prefs, 'a', 'b'))
+# print(sim.pearson_numpy(test_prefs, 'a', 'b'))
