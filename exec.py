@@ -3,7 +3,7 @@ import recommendations as rec
 import dataset
 import cProfile
 # import math
-import multiprocessing
+# import multiprocessing
 
 # if __name__ == '__main__':
 #     pool_size = multiprocessing.cpu_count()

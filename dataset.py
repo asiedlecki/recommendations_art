@@ -11,7 +11,7 @@ def loadImdbData(csv_ratings, csv_links='datasets/ml-latest/links.csv', csv_movi
     links = links.set_index('imdbId')
 
     currentUser = {}
-    for x in ratings[['const', 'You rated', 'Title']].values:
+    for x in ratings[['Const', 'Your Rating', 'Title']].values:
         index = int(x[0].lstrip('tt'))
         try:
             currentUser[int(links.loc[index]['movieId'])] = x[1]/2
