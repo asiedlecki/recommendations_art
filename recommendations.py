@@ -41,9 +41,9 @@ def transformPrefs(prefs):
     return rev_prefs
 
 # building dict - position: [recommended positions]
-# using buffer - more RAM required
+# using buffer - bit faster, but much more RAM required
 def buildRecomSetBuffered(prefs, distance=similarity.pearson, n=100):
-    # n is number recommended movies per movie
+    # n = number of similar movies per movie
     now = datetime.datetime.now()
     print(now)
     recom_set = {}
@@ -93,8 +93,8 @@ def buildRecomSetBuffered(prefs, distance=similarity.pearson, n=100):
 
 # building dict - position: [recommended positions]
 # not using buffer - a bit slower, but much less RAM is required
-def buildRecomSet(prefs, distance=similarity.pearson, n=100):
-    # n is number recommended movies per movie
+def buildRecomSet(prefs, distance=similarity.pearson, n=1000):
+    # n = number of similar movies per movie
     now = datetime.datetime.now()
     print(now)
     recom_set = {}
@@ -106,17 +106,18 @@ def buildRecomSet(prefs, distance=similarity.pearson, n=100):
     for pos in prefs:
         recom_set[pos] = topMatches(prefs=prefs, distance=distance, pos1=pos, n=n)
 
-        print(str(i)+':', pos, 'of movieId')
-        # print(type(pos), pos, recom_set[pos])
+        if i % 20 == 0:
+            print(str(i)+':', pos, 'of movieId')
+            # print(type(pos), pos, recom_set[pos])
 
-        end = default_timer()
-        duration = end - start
-        perc_of_total = (i)/rows_count
-        est_total_duration = duration / perc_of_total
-        est_time_end = now+datetime.timedelta(seconds=est_total_duration)
-        print(i, '/', rows_count, str(round(perc_of_total*100, 2))+'%', round(duration/60, 2), 'minutes. Estimated end time:', est_time_end, '    Started at', now)
-        # if i == 16:
-        #     break
+            end = default_timer()
+            duration = end - start
+            perc_of_total = (i)/rows_count
+            est_total_duration = duration / perc_of_total
+            est_time_end = now+datetime.timedelta(seconds=est_total_duration)
+            print(i, '/', rows_count, str(round(perc_of_total*100, 2))+'%', round(duration/60, 2), 'minutes. Estimated end time:', est_time_end, '    Started at', now)
+            # if i == 16:
+            #     break
         i += 1
     print('Recommendations built for {0} movies'.format(i, datetime.datetime.now()))
     now = datetime.datetime.now()
@@ -152,7 +153,8 @@ def getRecommendedItems(user_prefs, movies_sim):
     recs.sort(reverse=True)
     return recs
 
-def getPopularMovies(prefs):
+# 75th percentile gives good results, no other tested
+def getPopularMovies(prefs, percentile=0.75):
 
     # counting number of ratings per movie
     movies_popularity = {}
@@ -162,9 +164,9 @@ def getPopularMovies(prefs):
 
     dataset.savePrefsToJson(target_file='datasets/movies_popularity.json', prefs=movies_popularity)
 
-    # creating data frame so as to check the 75th-percentile
+    # creating data frame so as to check the given percentile
     df = pd.DataFrame.from_dict(data=movies_popularity, orient='index')
-    min_popular = int(df.quantile(q=0.75)[0])
+    min_popular = int(df.quantile(q=percentile)[0])
     print('Minimum number of ratings per movie: {0}'.format(min_popular))
 
     # creating set of movies for filtering
@@ -174,10 +176,16 @@ def getPopularMovies(prefs):
     return popular_movies
 
 # this function prepares dict of similar movies on the basis of only the most popular movies
-def executeDictSimMovies(prefs_file, target_file, distance=similarity.pearson, ):
+def executeDictSimMovies(prefs_file, target_file, percentile, n=1000, distance=similarity.pearson, use_buffer=False):
+    # n = number of similar movies per movie
     data = dataset.openJson(file=prefs_file)
-    popular_items = getPopularMovies(data)
+    popular_items = getPopularMovies(data, percentile)
     data = {movie: data[movie] for movie in popular_items}
     popular_items = None
-    prefs = buildRecomSet(prefs=data, distance=distance, n=1000)
+
+    if use_buffer:
+        prefs = buildRecomSetBuffered(prefs=data, distance=distance, n=n)
+    else:
+        prefs = buildRecomSet(prefs=data, distance=distance, n=n)
+
     dataset.savePrefsToJson(target_file=target_file, prefs=prefs)

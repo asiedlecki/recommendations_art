@@ -1,0 +1,7 @@
+/.idea
+/.ipynb_checkpoints
+/__pycache__
+/datasets
+/.ipynb_checkpoints/similar_movies_check-checkpoint.ipynb
+/.ipynb_checkpoints/test-checkpoint.ipynb
+/.ipynb_checkpoints/user_recommendations_check-checkpoint.ipynb

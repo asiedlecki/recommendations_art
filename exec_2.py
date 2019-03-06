@@ -15,7 +15,7 @@ import json
 # result = rec.getRecommendedItems(user_prefs=my_ratings, movies_sim=movies)
 # print(result)
 
-rec.executeDictSimMovies(prefs_file='datasets/prefs.json', target_file='datasets/similar_movies_2019.json', distance=sim.pearson)
+rec.executeDictSimMovies(prefs_file='datasets/prefs.json', target_file='datasets/similar_movies_2019_full.json', percentile=0.75, distance=sim.pearson_numpy)
 
 # test_prefs = {'a': {'aa': 1, 'bb': 2, 'cc': 3}, 'b':{'aa': 1, 'bb': 5, 'cc': 7}}
 # print(sim.pearson(sim.critics, 'Lisa Rose', 'Claudia Puig'))

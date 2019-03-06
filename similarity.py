@@ -1,5 +1,6 @@
 from math import pow, sqrt
-from numpy import corrcoef
+import numpy as np
+from numba import jit, vectorize
 
 # słownik krytyków filmowych i ich ocen niewielkiego zestawu filmów
 critics = {'Lisa Rose': {'Kobieta w błękitnej wodzie': 2.5, 'Węże w samolocie': 3.5, 'Całe szczęście': 3.0,
@@ -55,14 +56,37 @@ def pearson(prefs, pos1, pos2):
     return r
 
 def pearson_numpy(prefs, pos1, pos2):
-    inter = {}
-    for item in prefs[pos1]:
-        if item in prefs[pos2]:
-            inter.setdefault(item)
+
+    inter = [item for item in prefs[pos1] if item in prefs[pos2]]
 
     x = [prefs[pos1][item] for item in inter]
     y = [prefs[pos2][item] for item in inter]
 
-    r = corrcoef(x=x, y=y)
+    r = np.corrcoef(x=x, y=y)
 
     return round(r[0][1], 6)
+
+def get_intersection(prefs, pos1, pos2):
+
+    inter = [item for item in prefs[pos1] if item in prefs[pos2]]
+    # sorted_dict = dict(sorted(unsorted_dict.items()))
+
+    return inter
+
+def pearson_cuda(inter, pos1, pos2):
+    for pos in inter:
+        pass
+    # subcalculations for Pearson correlation coefficient
+    sum12 = sum(prefs[pos1][item] * prefs[pos2][item] for item in inter)
+    sum1 = sum(prefs[pos1][item] for item in inter)
+    sum2 = sum(prefs[pos2][item] for item in inter)
+
+    pow1 = sum(pow(prefs[pos1][item], 2) for item in inter)
+    pow2 = sum(pow(prefs[pos2][item], 2) for item in inter)
+
+    num = n*sum12 - sum1*sum2
+    den = sqrt((n*pow1 - pow(sum1, 2)) * (n*pow2 - pow(sum2, 2)))
+    # print('sum12:{0} sum1:{1} sum2:{2} pow1:{3} pow2:{4} num:{5} den:{6}'.format(sum12, sum1, sum2, pow1, pow2, num, den))
+    if den == 0: return 0.0
+    r = round(num / den, 6)
+    return r
