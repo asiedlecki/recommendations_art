@@ -1,8 +1,11 @@
 import pandas as pd
+import numpy as np
+import csv
 import json
 from timeit import default_timer
 import datetime
 import logging
+from sklearn.model_selection import train_test_split
 
 # loading data from IMDB export file
 def loadImdbData(csv_ratings, csv_links='datasets/ml-latest/links.csv', csv_movies='datasets/ml-latest/movies.csv'):
@@ -20,6 +23,7 @@ def loadImdbData(csv_ratings, csv_links='datasets/ml-latest/links.csv', csv_movi
 
 
 # loading whole MovieLensData into dict of preferences
+# returns dict of movies
 def loadMovieLensData(file):
     start = default_timer()
     logging.basicConfig(filename='loadMovieLensData.log', level=logging.DEBUG)
@@ -60,10 +64,46 @@ def loadMovieLensData(file):
 
     return prefs
 
+def transformPrefs(prefs):
+    rev_prefs = {}
+    for pos in prefs.keys():
+        for key, score in prefs[pos].items():
+            rev_prefs.setdefault(key, {})
+            rev_prefs[key][pos] = score
+
+    return rev_prefs
+
+def getUsersDict(prefs_file, raw_file=False):
+    """
+    Gets dict of users and their rated movies from MovieLens raw data or from dict of movies.
+
+    :param prefs_file: input josn file location
+    :param raw_file: boolean; indicates whether function performs on raw MovieLens file that needs to be
+    transformed to dict first or performs on dict of movies
+    :return: dict of users
+    """
+    if raw_file == False:
+        users_dict = transformPrefs(openJson(prefs_file))
+    else:
+        movies_dict = loadMovieLensData(file='datasets/ml-latest/ratings.csv')
+        users_dict = transformPrefs(openJson(movies_dict))
+
+    return users_dict
+
+# saving prefs to csv file
+# needs repairing
+def savePrefsToCSV(target_file, fieldnames, prefs, restval=''):
+
+    with open(target_file, mode='w') as csv_file:
+        writer = csv.DictWriter(csv_file, fieldnames)
+        writer.writeheader()
+        for k in prefs:
+            writer.writerow({field: prefs[k].get(field) or k for field in fieldnames})
+
 # saving prefs to json file
 def savePrefsToJson(target_file, prefs):
     with open(target_file, 'w') as fp:
-        json.dump(obj=prefs, fp=fp, indent=4, sort_keys=True)
+        json.dump(obj=prefs, fp=fp, indent=4, sort_keys=False)
 
 def openJson(file):
     with open(file, 'r') as fp:
@@ -76,3 +116,29 @@ def openJson(file):
 #     f.to_csv(path_or_buf='datasets/ml-latest/ratings_v2.csv', sep=',')
     # f.to_json(orient=json_orient, path_or_buf='datasets/ml-latest/ratings.json')
     # f.to_hdf(path_or_buf='datasets/ml-latest/ratings.h5', key='movieId', mode='w')
+
+def dictToArray(dict_object):
+    names = ['id', 'data']
+    formats = [int, dict]
+    dtype = dict(names=names, formats=formats)
+    return np.array(list(dict_object.items()), dtype=dtype)
+
+
+def getRidOfLongTail(movies_prefs, popular_movies, filter_users=False, power_users=None):
+    all_movies = set(movies_prefs.keys())
+    all_users = set(transformPrefs(movies_prefs).keys())
+
+    for movie_id in all_movies:
+        if movie_id not in popular_movies:
+            movies_prefs.pop(movie_id)
+
+    if filter_users == True:
+        for movie_id in popular_movies:
+            for user_id in all_users:
+                if user_id not in power_users:
+                    try:
+                        movies_prefs[movie_id].pop(user_id)
+                    except:
+                        pass
+
+    return movies_prefs

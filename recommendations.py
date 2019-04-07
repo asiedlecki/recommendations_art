@@ -31,15 +31,6 @@ def synthMeter(prefs, pos1, distance=similarity.pearson, n=10): # n is a number 
     recommendations.sort(reverse=True)
     return recommendations[:n]
 
-def transformPrefs(prefs):
-    rev_prefs = {}
-    for pos in prefs.keys():
-        for key, score in prefs[pos].items():
-            rev_prefs.setdefault(key, {})
-            rev_prefs[key][pos] = score
-
-    return rev_prefs
-
 # building dict - position: [recommended positions]
 # using buffer - bit faster, but much more RAM required
 def buildRecomSetBuffered(prefs, distance=similarity.pearson, n=100):
@@ -154,7 +145,7 @@ def getRecommendedItems(user_prefs, movies_sim):
     return recs
 
 # 75th percentile gives good results, no other tested
-def getPopularMovies(prefs, percentile=0.75):
+def getPopularMovies(prefs, percentile=0.75, save_to_file=False, target_file='datasets/movies_popularity.json'):
 
     # counting number of ratings per movie
     movies_popularity = {}
@@ -162,18 +153,19 @@ def getPopularMovies(prefs, percentile=0.75):
         ratings = len(prefs[movie])
         movies_popularity[movie] = ratings
 
-    dataset.savePrefsToJson(target_file='datasets/movies_popularity.json', prefs=movies_popularity)
+    if save_to_file:
+        dataset.savePrefsToJson(target_file=target_file, prefs=movies_popularity)
 
     # creating data frame so as to check the given percentile
     df = pd.DataFrame.from_dict(data=movies_popularity, orient='index')
-    min_popular = int(df.quantile(q=percentile)[0])
-    print('Minimum number of ratings per movie: {0}'.format(min_popular))
+    threshold = int(df.quantile(q=percentile)[0])
+    print('Minimum number of occurencies per object: {0}'.format(threshold))
 
     # creating set of movies for filtering
-    popular_movies = set(key for key, value in movies_popularity.items() if value >= min_popular)
-    print('Number of movies to analyze: {0}'.format(len(popular_movies)))
+    popular_objects = set(key for key, value in movies_popularity.items() if value >= threshold)
+    print('Number of objects to analyze: {0}'.format(len(popular_objects)))
 
-    return popular_movies
+    return popular_objects, threshold
 
 # this function prepares dict of similar movies on the basis of only the most popular movies
 def executeDictSimMovies(prefs_file, target_file, percentile, n=1000, distance=similarity.pearson, use_buffer=False):
