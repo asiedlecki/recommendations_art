@@ -4,6 +4,7 @@ import datetime
 from timeit import default_timer
 import copy
 import dataset
+import sys
 
 
 # returns topMatches for pos1 object on a basis of used distance function, work for critics and movies
@@ -55,7 +56,7 @@ def buildRecomSetBuffered(prefs, distance=similarity.pearson, n=100):
                     # pearson_buffer[comp_key][0] += 1
                 else:
                     pearson = distance(prefs, pos1, pos)
-                    if len(pearson_buffer) <= 100000000:
+                    if len(pearson_buffer) <= 100000000000:
                         pearson_buffer[comp_key] = pearson
                     result.append((pearson, pos))
                     # print('pos: {0}, pearson: {1}'.format(pos, pearson))
@@ -64,7 +65,7 @@ def buildRecomSetBuffered(prefs, distance=similarity.pearson, n=100):
         if result:
             recom_set[pos1] = result[:n]
 
-        if i%10 == 0:
+        if i%25 == 0:
             print(str(i)+':', pos1, 'of movieId')
         # print(type(pos), pos, recom_set[pos])
 
@@ -97,7 +98,7 @@ def buildRecomSet(prefs, distance=similarity.pearson, n=1000):
     for pos in prefs:
         recom_set[pos] = topMatches(prefs=prefs, distance=distance, pos1=pos, n=n)
 
-        if i % 20 == 0:
+        if i % 25 == 0:
             print(str(i)+':', pos, 'of movieId')
             # print(type(pos), pos, recom_set[pos])
 
@@ -168,16 +169,19 @@ def getPopularMovies(prefs, percentile=0.75, save_to_file=False, target_file='da
     return popular_objects, threshold
 
 # this function prepares dict of similar movies on the basis of only the most popular movies
-def executeDictSimMovies(prefs_file, target_file, percentile, n=1000, distance=similarity.pearson, use_buffer=False):
+def executeDictSimMovies(prefs_dict, target_file, most_popular=False, percentile=0.75, n=1000, distance=similarity.pearson, use_buffer=False):
     # n = number of similar movies per movie
-    data = dataset.openJson(file=prefs_file)
-    popular_items = getPopularMovies(data, percentile)
-    data = {movie: data[movie] for movie in popular_items}
-    popular_items = None
+
+    if most_popular == True:
+        popular_items = getPopularMovies(prefs_dict, percentile)
+        prefs_dict = {movie: prefs_dict[movie] for movie in popular_items}
+        popular_items = None
 
     if use_buffer:
-        prefs = buildRecomSetBuffered(prefs=data, distance=distance, n=n)
+        prefs = buildRecomSetBuffered(prefs=prefs_dict, distance=distance, n=n)
     else:
-        prefs = buildRecomSet(prefs=data, distance=distance, n=n)
+        prefs = buildRecomSet(prefs=prefs_dict, distance=distance, n=n)
+
+    print(sys.getsizeof(prefs)/float(1024**2), 'MB')
 
     dataset.savePrefsToJson(target_file=target_file, prefs=prefs)
