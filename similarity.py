@@ -90,3 +90,32 @@ def pearson_cuda(inter, pos1, pos2):
     if den == 0: return 0.0
     r = round(num / den, 6)
     return r
+
+
+# zwracanie miary podobieństwa opartej na odległości euklidesowej dla pozycji person1 i person2
+def euclidean(prefs, person1, person2):
+    # pobieranie listy wspólnych pozycji
+    si={}
+    for item in prefs[person1]:
+        if item in prefs[person2]:
+            si[item]=1
+    # w przypadku braku wspólnych ocen zostanie zwrócona wartość 0
+    if len(si) == 0: return 0
+    # sumowanie kwadratów wszystkich różnic
+    sum_of_squares = sum([pow(prefs[person1][item]-prefs[person2][item], 2)
+                          for item in prefs[person1] if item in prefs[person2]])
+    return 1/(1+sqrt(sum_of_squares)) # odwracamy by większa cyfra oznaczała większe podobieństwo (1 - identyczne)
+    # w mianowniku dodano 1, by uniknąć dzielenia przez zero
+
+
+def euclidean_numpy(prefs, pos1, pos2):
+    inter = [item for item in prefs[pos1] if item in prefs[pos2]]
+
+    if len(inter) == 0: return 0
+
+    x = np.array([prefs[pos1][item] for item in inter])
+    y = np.array([prefs[pos2][item] for item in inter])
+
+    dist = np.linalg.norm(x - y)
+
+    return round(1/(1+dist), 6)
