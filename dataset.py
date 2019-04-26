@@ -5,6 +5,7 @@ import json
 from timeit import default_timer
 import datetime
 import logging
+import random
 from sklearn.model_selection import train_test_split
 
 # loading data from IMDB export file
@@ -142,3 +143,28 @@ def getRidOfLongTail(movies_prefs, popular_movies, filter_users=False, power_use
                         pass
 
     return movies_prefs
+
+# splits movies of every user within test / train set into another train/test sets
+# perc variable states percentage of test set, 100%-perc goes to train set
+def usersInnerSplit(set_dict, users_prefs, perc, random_state):
+    prefs_f_test_set = {key: values for key, values in users_prefs.items() if key in set_dict}
+    users_test_train = prefs_f_test_set.copy()
+    users_test_test = prefs_f_test_set.copy()
+
+    print('start', '-----', datetime.datetime.now())
+    dict_len = len(users_test_test)
+    i = 0
+    for user in prefs_f_test_set.keys():
+        random.seed(random_state)
+        items_to_remove = random.sample(list(prefs_f_test_set[user].keys()), k=int(len(prefs_f_test_set[user]) * perc))
+        users_test_train[user] = {key: values for key, values in users_test_train[user].items()
+                                  if key not in items_to_remove}
+        users_test_test[user] = {key: values for key, values in users_test_test[user].items()
+                                 if key in items_to_remove}
+
+        i += 1
+        if i % 5000 == 0:
+            print(str(i) + '/' + str(dict_len), datetime.datetime.now())
+    print('end', '-----', datetime.datetime.now())
+
+    return users_test_train, users_test_test
