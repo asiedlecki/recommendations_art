@@ -1,4 +1,4 @@
-name: Recommendations_ar
+name: rec_ar
 channels:
 - defaults
 dependencies:

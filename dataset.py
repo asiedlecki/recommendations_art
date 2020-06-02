@@ -168,3 +168,17 @@ def usersInnerSplit(set_dict, users_prefs, perc, random_state):
     print('end', '-----', datetime.datetime.now())
 
     return users_test_train, users_test_test
+
+
+def pruneMoviesSimilarity(dict_to_prune, slicing=False, n=0.3):
+    if slicing:
+        for movie in dict_to_prune:
+            dict_to_prune[movie] = dict_to_prune[:int(n)]
+
+    else:
+        for movie in dict_to_prune:
+            for i, pair in enumerate(dict_to_prune[movie], 0):
+                if pair[0] < float(n):
+                    sim_list = dict_to_prune[movie].remove(pair)
+
+    return dict_to_prune

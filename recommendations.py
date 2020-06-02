@@ -127,7 +127,7 @@ def getRecommendedItems(user_prefs, movies_sim):
             for (similarity, movie) in movies_sim[str(user_movie)]:
 
                 # lets ignore movies that have been already rated by user
-                if movie in user_prefs: continue
+                if int(movie) in user_prefs or not similarity >= -1: continue
 
                 # calculating sum of weighted rating of every non-watched movie
                 weighted_rating.setdefault(movie, 0)
@@ -139,7 +139,101 @@ def getRecommendedItems(user_prefs, movies_sim):
         else: continue
 
     # dividing sum of ratings by sum of similarities to get a mean of rating
-    recs = [(round(rating/similarity_sum[movie], 6), movie) for movie, rating in weighted_rating.items()]
+    recs = [(0, movie) if similarity_sum[movie] == 0 else (round(rating/similarity_sum[movie], 6), movie) for movie, rating in weighted_rating.items()]
+
+    # sorting recommendations
+    recs.sort(reverse=True)
+    return recs
+
+
+def getRecommendedItems_v2(user_prefs, movies_sim):
+
+    weighted_rating = {}
+    similarity_sum = {}
+    score_for_negative_corr = 0
+    # sim_for_negative_corr = 0
+
+    for (user_movie, user_rating) in user_prefs.items():
+        # print(user_movie, user_rating)
+        if str(user_movie) in movies_sim:
+            # print(user_movie, 'in trained_data')
+            for (similarity, movie) in movies_sim[str(user_movie)]:
+                # lets ignore movies that have been already rated by user
+                # lets ignore movies that have not been rated both by one user (distance has not been calculated for them)
+                if int(movie) in user_prefs or not similarity >= -1: continue
+
+                # calculating sum of weighted rating of every non-watched movie
+                weighted_rating.setdefault(movie, 0)
+                # so_far_rating = weighted_rating[movie]
+
+                rating_norm = lambda user_rating, similarity: score_for_negative_corr if similarity < 0 else user_rating*similarity
+                # rating_norm = lambda user_rating, similarity: user_rating * sim_for_negative_corr if user_rating * similarity < 0 else user_rating * similarity
+
+                weighted_rating[movie] += rating_norm(user_rating, similarity)
+                # if movie == '132456':
+                # print('Weighted rating for', movie, ':', weighted_rating[movie], '=', so_far_rating, '+', user_rating, '*', similarity)
+
+                # summarizing all similarity measures
+                similarity_sum.setdefault(movie, 0)
+                # so_far_sim_measures = similarity_sum[movie]
+                # sim_norm = lambda similarity: score_for_negative_corr/float(user_rating) if similarity <= 0 else similarity
+                # sim_norm = lambda similarity: sim_for_negative_corr if similarity <= 0 else similarity
+
+                similarity_sum[movie] += abs(similarity)
+                # if movie == '132456':
+                # print('Similarity sum:', similarity_sum[movie], '=', so_far_sim_measures, '+', abs(similarity))
+        else: continue
+
+    # dividing sum of ratings by sum of similarities to get a mean of rating
+    recs = [(0, movie) if similarity_sum[movie] == 0 else (round(rating/similarity_sum[movie], 6), movie) for movie, rating in weighted_rating.items()]
+
+    # sorting recommendations
+    recs.sort(reverse=True)
+    return recs
+
+
+def getRecommendedItems_v3(user_prefs, movies_sim):
+
+    weighted_rating = {}
+    similarity_sum = {}
+    score_for_negative_corr = 0
+    # sim_for_negative_corr = 0
+
+    for user_movie, user_rating in user_prefs.items():
+        # print(user_movie, type(user_movie), user_rating, type(user_rating))
+        if user_movie in movies_sim:
+            # print(user_movie, 'in trained_data')
+            for movie, similarity in movies_sim[user_movie].items():
+                # lets ignore movies that have been already rated by user
+                # lets ignore movies that have not been rated both by one user (distance has not been calculated for them)
+                if movie in user_prefs or not similarity >= -1:
+                    # print(movie, 'in user_prefs or similarity < -1 (', similarity, ')')
+                    continue
+
+                # calculating sum of weighted rating of every non-watched movie
+                weighted_rating.setdefault(movie, 0)
+                # so_far_rating = weighted_rating[movie]
+
+                rating_norm = lambda user_rating, similarity: score_for_negative_corr if similarity < 0 else user_rating*similarity
+                # rating_norm = lambda user_rating, similarity: user_rating * sim_for_negative_corr if user_rating * similarity < 0 else user_rating * similarity
+
+                weighted_rating[movie] += rating_norm(user_rating, similarity)
+                # if movie == '132456':
+                # print('Weighted rating for', movie, ':', weighted_rating[movie], '=', so_far_rating, '+', user_rating, '*', similarity)
+
+                # summarizing all similarity measures
+                similarity_sum.setdefault(movie, 0)
+                # so_far_sim_measures = similarity_sum[movie]
+                # sim_norm = lambda similarity: score_for_negative_corr/float(user_rating) if similarity <= 0 else similarity
+                # sim_norm = lambda similarity: sim_for_negative_corr if similarity <= 0 else similarity
+
+                similarity_sum[movie] += abs(similarity)
+                # if movie == '132456':
+                # print('Similarity sum:', similarity_sum[movie], '=', so_far_sim_measures, '+', abs(similarity))
+        else: continue
+
+    # dividing sum of ratings by sum of similarities to get a mean of rating
+    recs = [(0, movie) if similarity_sum[movie] == 0 else (round(rating/similarity_sum[movie], 6), movie) for movie, rating in weighted_rating.items()]
 
     # sorting recommendations
     recs.sort(reverse=True)
